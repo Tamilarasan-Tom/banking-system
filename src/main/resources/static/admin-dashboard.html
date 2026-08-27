@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASHA BANK - Admin Console</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <div class="logo-section">
+                <span class="logo-masha">MASHA</span><span class="logo-bank">BANK</span>
+                <span style="font-size:0.75rem; background: var(--color-bg-light); color:var(--color-primary-orange); border: 1px solid var(--color-primary-orange); padding:2px 8px; border-radius:4px; margin-left:0.5rem; font-weight:600;">ADMIN</span>
+            </div>
+            <div class="nav-links">
+                <div class="user-info">
+                    <span>Administrator:</span>
+                    <span class="user-name" id="adminNameLabel">Admin</span>
+                </div>
+                <button onclick="logout()" class="btn btn-sm btn-danger">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard layout -->
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="#" class="sidebar-link active" onclick="switchAdminTab('dashboard', this)">
+                <i>📊</i> Dashboard
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchAdminTab('users', this)">
+                <i>👥</i> User Management
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchAdminTab('accounts', this)">
+                <i>🏦</i> Bank Accounts
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchAdminTab('transactions', this)">
+                <i>💸</i> Transactions
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchAdminTab('loans', this)">
+                <i>📋</i> Loan Management
+            </a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- TAB: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-section">
+                <div style="margin-bottom:2rem;">
+                    <h1>System Overview</h1>
+                    <p style="color:var(--color-text-secondary)">Real-time aggregate statistics and system health metrics.</p>
+                </div>
+
+                <div class="grid-4" id="statsGrid" style="margin-bottom:2.5rem;">
+                    <div class="admin-stat-card" id="totalUsersCard">
+                        <p class="stat-label">Total Users</p>
+                        <p class="stat-value" id="stat-totalUsers">—</p>
+                    </div>
+                    <div class="admin-stat-card" id="activeAccountsCard">
+                        <p class="stat-label">Active Accounts</p>
+                        <p class="stat-value" id="stat-activeAccounts">—</p>
+                    </div>
+                    <div class="admin-stat-card" id="totalTransactionsCard">
+                        <p class="stat-label">Total Transactions</p>
+                        <p class="stat-value" id="stat-totalTransactions">—</p>
+                    </div>
+                    <div class="admin-stat-card" id="pendingLoansCard">
+                        <p class="stat-label">Pending Loans</p>
+                        <p class="stat-value" id="stat-pendingLoans">—</p>
+                    </div>
+                    <div class="admin-stat-card" id="totalAccountsCard">
+                        <p class="stat-label">Total Accounts</p>
+                        <p class="stat-value" id="stat-totalAccounts">—</p>
+                    </div>
+                    <div class="admin-stat-card" id="approvedLoansCard">
+                        <p class="stat-label">Approved Loans</p>
+                        <p class="stat-value" id="stat-approvedLoans">—</p>
+                    </div>
+                    <div class="admin-stat-card" id="rejectedLoansCard">
+                        <p class="stat-label">Rejected Loans</p>
+                        <p class="stat-value" id="stat-rejectedLoans">—</p>
+                    </div>
+                    <div class="admin-stat-card" id="transferVolumeCard">
+                        <p class="stat-label">Transfer Volume ($)</p>
+                        <p class="stat-value" id="stat-transferAmount" style="font-size:1.5rem;">—</p>
+                    </div>
+                </div>
+
+                <!-- Recent Loans Pending -->
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>Pending Loan Applications</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="switchAdminTab('loans')">View All</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Loan Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardPendingLoansTable">
+                                <tr>
+                                    <td colspan="6" style="text-align:center;color:var(--color-text-secondary)">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: USERS -->
+            <section id="tab-users" class="tab-section" style="display:none;">
+                <div style="margin-bottom:2rem;">
+                    <h1>User Management</h1>
+                    <p style="color:var(--color-text-secondary)">View, search, and manage all registered customers.</p>
+                </div>
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>All Registered Users</h3>
+                        <input type="text" id="userSearchInput" class="form-control" placeholder="Search by name or email..." style="max-width:280px;" oninput="filterUsers(this.value)">
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <tr>
+                                    <td colspan="8" style="text-align:center;color:var(--color-text-secondary)">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: ACCOUNTS -->
+            <section id="tab-accounts" class="tab-section" style="display:none;">
+                <div style="margin-bottom:2rem;">
+                    <h1>Bank Account Management</h1>
+                    <p style="color:var(--color-text-secondary)">Monitor and control all bank accounts in the system.</p>
+                </div>
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>All Bank Accounts</h3>
+                        <input type="text" id="accountSearchInput" class="form-control" placeholder="Search by account number..." style="max-width:280px;" oninput="filterAccounts(this.value)">
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Account No.</th>
+                                    <th>Owner</th>
+                                    <th>Type</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTable">
+                                <tr>
+                                    <td colspan="7" style="text-align:center;color:var(--color-text-secondary)">Loading accounts...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: TRANSACTIONS -->
+            <section id="tab-transactions" class="tab-section" style="display:none;">
+                <div style="margin-bottom:2rem;">
+                    <h1>Transaction Monitor</h1>
+                    <p style="color:var(--color-text-secondary)">Real-time feed of all deposits, withdrawals, and transfers in the system.</p>
+                </div>
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>All Transactions</h3>
+                        <select id="txnTypeFilter" class="form-control" style="max-width:200px;" onchange="filterTransactions(this.value)">
+                            <option value="ALL">All Types</option>
+                            <option value="DEPOSIT">Deposits Only</option>
+                            <option value="WITHDRAW">Withdrawals Only</option>
+                            <option value="TRANSFER">Transfers Only</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Account No.</th>
+                                    <th>Owner</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Balance After</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTable">
+                                <tr>
+                                    <td colspan="7" style="text-align:center;color:var(--color-text-secondary)">Loading transactions...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: LOANS -->
+            <section id="tab-loans" class="tab-section" style="display:none;">
+                <div style="margin-bottom:2rem;">
+                    <h1>Loan Management</h1>
+                    <p style="color:var(--color-text-secondary)">Review, approve, or reject loan applications from customers.</p>
+                </div>
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>All Loan Applications</h3>
+                        <select id="loanStatusFilter" class="form-control" style="max-width:200px;" onchange="filterLoans(this.value)">
+                            <option value="ALL">All Statuses</option>
+                            <option value="PENDING">Pending Only</option>
+                            <option value="APPROVED">Approved Only</option>
+                            <option value="REJECTED">Rejected Only</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Rate</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loansTable">
+                                <tr>
+                                    <td colspan="8" style="text-align:center;color:var(--color-text-secondary)">Loading loans...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal: Loan Decision -->
+    <div class="modal" id="loanDecisionModal">
+        <div class="modal-content">
+            <h3 id="loanModalTitle" style="margin-bottom:1rem;">Loan Decision</h3>
+            <input type="hidden" id="loanModalId">
+            <input type="hidden" id="loanModalAction">
+            <div class="form-group">
+                <label for="loanModalRemarks">Admin Remarks (Optional)</label>
+                <input type="text" id="loanModalRemarks" class="form-control" placeholder="Approved / Rejected due to...">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+                <button class="btn btn-secondary" onclick="closeLoanDecisionModal()">Cancel</button>
+                <button class="btn btn-primary" id="loanModalSubmitBtn" onclick="submitLoanDecision()">Confirm Decision</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: User/Account Status Change -->
+    <div class="modal" id="statusModal">
+        <div class="modal-content">
+            <h3 id="statusModalTitle" style="margin-bottom:1rem;">Update Status</h3>
+            <input type="hidden" id="statusModalId">
+            <input type="hidden" id="statusModalType">
+            <div class="form-group">
+                <label for="statusModalValue">New Status</label>
+                <select id="statusModalValue" class="form-control"></select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+                <button class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitStatusChange()">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

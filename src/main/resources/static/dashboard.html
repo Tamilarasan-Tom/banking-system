@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASHA BANK - Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <div class="logo-section">
+                <span class="logo-masha">MASHA</span><span class="logo-bank">BANK</span>
+            </div>
+            <div class="nav-links">
+                <div class="user-info">
+                    <span>Welcome,</span>
+                    <span class="user-name" id="userNameLabel">Customer</span>
+                </div>
+                <button onclick="logout()" class="btn btn-sm btn-secondary">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard layout -->
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="#" class="sidebar-link active" onclick="switchTab('overview', this)">
+                <i>📊</i> Overview
+            </a>
+            <a href="#" class="sidebar-link" onclick="showTransactionTab('deposit', this)">
+                <i>📥</i> Deposit
+            </a>
+            <a href="#" class="sidebar-link" onclick="showTransactionTab('withdraw', this)">
+                <i>📤</i> Withdraw
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchTab('transfer', this)">
+                <i>🔄</i> Fund Transfer
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchTab('loans', this)">
+                <i>🏦</i> Loan Center
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchTab('notifications', this)">
+                <i>🔔</i> Notifications (<span id="unreadBadge">0</span>)
+            </a>
+            <a href="#" class="sidebar-link" onclick="switchTab('profile', this)">
+                <i>👤</i> Profile & Settings
+            </a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- TAB: OVERVIEW -->
+            <section id="tab-overview" class="tab-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 id="welcomeHeader">Hello, Customer</h1>
+                        <p style="color:var(--color-text-secondary)">Manage your assets and check recent account activities.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateAccountModal()">+ New Bank Account</button>
+                </div>
+
+                <!-- Account Card Section -->
+                <div class="grid-2" id="accountsGrid" style="margin-bottom: 2.5rem;">
+                    <!-- Dynamically Loaded accounts will appear here -->
+                    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem;">
+                        <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">You do not have any active bank accounts. Click below to create one.</p>
+                        <button class="btn btn-primary" onclick="openCreateAccountModal()">Open Bank Account</button>
+                    </div>
+                </div>
+
+                <div class="grid-4" style="margin-bottom: 2.5rem;">
+                    <div class="quick-action-card" onclick="switchTab('deposit')">
+                        <div class="quick-action-icon">📥</div>
+                        <div>
+                            <h4>Deposit</h4>
+                            <p style="font-size:0.75rem; color:var(--color-text-secondary)">Add funds instantly</p>
+                        </div>
+                    </div>
+                    <div class="quick-action-card" onclick="switchTab('withdraw')">
+                        <div class="quick-action-icon">📤</div>
+                        <div>
+                            <h4>Withdraw</h4>
+                            <p style="font-size:0.75rem; color:var(--color-text-secondary)">Cash out securely</p>
+                        </div>
+                    </div>
+                    <div class="quick-action-card" onclick="switchTab('transfer')">
+                        <div class="quick-action-icon">🔄</div>
+                        <div>
+                            <h4>Transfer</h4>
+                            <p style="font-size:0.75rem; color:var(--color-text-secondary)">Send money instantly</p>
+                        </div>
+                    </div>
+                    <div class="quick-action-card" onclick="switchTab('loans')">
+                        <div class="quick-action-icon">🏦</div>
+                        <div>
+                            <h4>Loans</h4>
+                            <p style="font-size:0.75rem; color:var(--color-text-secondary)">Apply for funding</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions table -->
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 1rem;">Recent Transactions</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Account</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTransactionsTable">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: var(--color-text-secondary);">No transactions recorded.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: DEPOSIT -->
+            <section id="tab-deposit" class="tab-section" style="display:none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1>Deposit Funds</h1>
+                    <p style="color:var(--color-text-secondary)">Deposit money securely into your bank account.</p>
+                </div>
+
+                <div class="glass-card" style="max-width: 600px;">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--color-success);">📥 Deposit Funds</h3>
+                    <form id="depositForm">
+                        <div class="form-group">
+                            <label for="depositAccountSelect">Select Account</label>
+                            <select id="depositAccountSelect" class="form-control" required></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="depositAmount">Amount ($)</label>
+                            <input type="number" id="depositAmount" class="form-control" placeholder="100.00" min="0.01" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="depositDesc">Remarks / Description</label>
+                            <input type="text" id="depositDesc" class="form-control" placeholder="Self Deposit">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="depositPin">Transaction PIN</label>
+                            <input type="password" id="depositPin" class="form-control" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-success" style="width:100%;">Deposit Money</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB: WITHDRAW -->
+            <section id="tab-withdraw" class="tab-section" style="display:none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1>Withdraw Funds</h1>
+                    <p style="color:var(--color-text-secondary)">Withdraw money securely from your bank account.</p>
+                </div>
+
+                <div class="glass-card" style="max-width: 600px;">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--color-error);">📤 Withdraw Funds</h3>
+                    <form id="withdrawForm">
+                        <div class="form-group">
+                            <label for="withdrawAccountSelect">Select Account</label>
+                            <select id="withdrawAccountSelect" class="form-control" required></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="withdrawAmount">Amount ($)</label>
+                            <input type="number" id="withdrawAmount" class="form-control" placeholder="100.00" min="0.01" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="withdrawDesc">Remarks / Description</label>
+                            <input type="text" id="withdrawDesc" class="form-control" placeholder="Cash Withdrawal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="withdrawPin">Transaction PIN</label>
+                            <input type="password" id="withdrawPin" class="form-control" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger" style="width:100%;">Withdraw Money</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB: TRANSFER -->
+            <section id="tab-transfer" class="tab-section" style="display:none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1>Fund Transfer</h1>
+                    <p style="color:var(--color-text-secondary)">Instantly transfer funds to another account within MASHA BANK.</p>
+                </div>
+
+                <div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+                    <h3 style="margin-bottom: 1.5rem;">🔄 Transfer Money</h3>
+                    <form id="transferForm">
+                        <div class="form-group">
+                            <label for="transferSenderSelect">From Account (Source)</label>
+                            <select id="transferSenderSelect" class="form-control" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transferRecipient">To Account Number (Recipient)</label>
+                            <input type="text" id="transferRecipient" class="form-control" placeholder="10-digit account number" required minlength="10" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="transferAmount">Amount ($)</label>
+                            <input type="number" id="transferAmount" class="form-control" placeholder="150.00" min="0.01" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transferDesc">Transfer Remarks</label>
+                            <input type="text" id="transferDesc" class="form-control" placeholder="Rent payment / utilities">
+                        </div>
+                        <div class="form-group">
+                            <label for="transferPin">Transaction PIN</label>
+                            <input type="password" id="transferPin" class="form-control" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Initiate Instant Transfer</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB: LOANS -->
+            <section id="tab-loans" class="tab-section" style="display:none;">
+                <div style="margin-bottom: 1.5rem;">
+                    <h1>Loan Center</h1>
+                    <p style="color:var(--color-text-secondary)">Select a loan category below to view rates, calculate dynamic EMI, and apply instantly.</p>
+                </div>
+
+                <div class="loan-container">
+                    <!-- Left Column: Vertical Loan Options Navigation Tree -->
+                    <div class="glass-card" style="padding: 1.25rem;">
+                        <h4 style="margin-bottom: 1rem;">Loan Types</h4>
+                        <div class="loan-tree-menu">
+                            <div class="loan-menu-item active" id="loan-item-PERSONAL" onclick="selectLoanType('PERSONAL')">
+                                <span>Personal Loan</span>
+                            </div>
+                            <div class="loan-menu-item" id="loan-item-HOME" onclick="selectLoanType('HOME')">
+                                <span>Home Loan</span>
+                            </div>
+                            <div class="loan-menu-item" id="loan-item-VEHICLE" onclick="toggleVehicleLoanMenu(event)">
+                                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                                    <span>Vehicle Loan</span>
+                                    <span id="vehicleChevron" class="chevron-icon">▼</span>
+                                </div>
+                            </div>
+                            <div id="vehicleSubMenu" class="loan-submenu" style="display: none;">
+                                <div class="loan-menu-item loan-submenu-item" id="loan-item-BIKE" onclick="selectLoanType('BIKE')">
+                                    <span>Bike Loan</span>
+                                </div>
+                                <div class="loan-menu-item loan-submenu-item" id="loan-item-CAR" onclick="selectLoanType('CAR')">
+                                    <span>Car Loan</span>
+                                </div>
+                            </div>
+                            <div class="loan-menu-item" id="loan-item-GOLD" onclick="selectLoanType('GOLD')">
+                                <span>Gold Loan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Selected Loan Application Form & Calculations -->
+                    <div class="glass-card">
+                        <!-- Prominent Gold Loan Valuation Banner (Gold Loan only) -->
+                        <div id="goldBanner" class="gold-rate-banner" style="display: none;">
+                            <span>1 Gram Gold = </span><span class="gold-highlight">₹15,000</span>
+                        </div>
+
+                        <h3 id="selectedLoanTitle" style="margin-bottom: 0.25rem;">Personal Loan</h3>
+                        <p id="selectedLoanSubtitle" style="color:var(--color-text-secondary); margin-bottom: 1.5rem;">Enter details to calculate EMI and apply.</p>
+
+                        <form id="newLoanForm">
+                            <!-- Account Number -->
+                            <div class="form-group">
+                                <label for="accountNumberInput">Account Number <span style="color:var(--color-error)">*</span></label>
+                                <input type="text" id="accountNumberInput" class="form-control" placeholder="Enter Account Number" required oninput="handleAccountNumberChange()">
+                            </div>
+
+                            <!-- Loan ID (Auto Generated) -->
+                            <div class="form-group">
+                                <label for="loanIdInput">Loan ID</label>
+                                <input type="text" id="loanIdInput" class="form-control" readonly placeholder="Auto-generated on account entry">
+                            </div>
+
+                            <!-- Interest Rate (Fixed 10%) -->
+                            <div class="form-group">
+                                <label for="interestRateInput">Interest Rate</label>
+                                <input type="text" id="interestRateInput" class="form-control" value="10%" readonly>
+                            </div>
+
+                            <!-- Gold Loan Fields -->
+                            <div id="goldFieldsContainer" style="display: none;">
+                                <div class="form-group">
+                                    <label for="goldWeightSelect">Gold Weight</label>
+                                    <select id="goldWeightSelect" class="form-control" onchange="calculateLoanDetails()"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="goldPuritySelect">Purity</label>
+                                    <select id="goldPuritySelect" class="form-control" readonly>
+                                        <option value="24K">24K</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="goldValueDisplay">Gold Value / Loan Amount</label>
+                                    <input type="text" id="goldValueDisplay" class="form-control" readonly style="color: var(--color-success); font-weight: 600;">
+                                </div>
+                            </div>
+
+                            <!-- Regular Loan Amount Field (Personal, Home, Bike, Car) -->
+                            <div id="loanAmountContainer" class="form-group">
+                                <label for="loanAmountSelect">Loan Amount</label>
+                                <select id="loanAmountSelect" class="form-control" onchange="calculateLoanDetails()"></select>
+                            </div>
+
+                            <!-- Tenure -->
+                            <div class="form-group">
+                                <label for="tenureSelect">Tenure</label>
+                                <select id="tenureSelect" class="form-control" onchange="calculateLoanDetails()"></select>
+                            </div>
+
+                            <!-- Dynamic EMI Calculation Box -->
+                            <div class="emi-calc-box">
+                                <span class="emi-label">Monthly EMI</span>
+                                <h2 id="calculatedEmiDisplay" class="emi-value">₹0 / month</h2>
+                            </div>
+
+                            <!-- Proof / Aadhar Number -->
+                            <div class="form-group">
+                                <label for="proofInput">Proof <span style="font-size: 0.85rem; color: var(--color-text-secondary);">(Aadhar Number)</span> <span style="color:var(--color-error)">*</span></label>
+                                <input type="text" id="proofInput" class="form-control" placeholder="Aadhar Number (12 numeric digits)" maxlength="12" inputmode="numeric" required oninput="validateLoanForm()">
+                            </div>
+
+                            <!-- Apply Button Container (Hidden until valid) -->
+                            <div id="applyButtonContainer" style="display: none; margin-top: 1.5rem;">
+                                <button type="submit" id="applyLoanBtn" class="btn btn-primary" style="width:100%;">APPLY LOAN</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- My Loans Applications Table -->
+                <div class="glass-card" style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Your Loan Applications</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Loan ID</th>
+                                    <th>Account Number</th>
+                                    <th>Loan Category</th>
+                                    <th>Requested Amount</th>
+                                    <th>Interest</th>
+                                    <th>Tenure</th>
+                                    <th>EMI</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myLoansTable">
+                                <tr>
+                                    <td colspan="9" style="text-align: center; color: var(--color-text-secondary);">No loans filed.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: NOTIFICATIONS -->
+            <section id="tab-notifications" class="tab-section" style="display:none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1>Alerts & Notifications</h1>
+                    <p style="color:var(--color-text-secondary)">Review transaction reports and system messages.</p>
+                </div>
+
+                <div class="glass-card" id="notificationsCard">
+                    <h3 style="margin-bottom: 1rem;">Notification Logs</h3>
+                    <div id="notificationsList">
+                        <p style="text-align:center; color:var(--color-text-secondary); padding: 2rem;">No alerts registered.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: PROFILE -->
+            <section id="tab-profile" class="tab-section" style="display:none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1>Profile Settings</h1>
+                    <p style="color:var(--color-text-secondary)">Manage your personal details and contact address settings.</p>
+                </div>
+
+                <div class="glass-card" style="max-width: 700px;">
+                    <h3 style="margin-bottom: 1.5rem;">Customer Profile</h3>
+                    <form id="profileForm">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="profileEmail">Registered Email</label>
+                                <input type="email" id="profileEmail" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="profileRole">Account Role</label>
+                                <input type="text" id="profileRole" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profileName">Full Name</label>
+                            <input type="text" id="profileName" class="form-control" required>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="profilePhone">Phone Number</label>
+                                <input type="tel" id="profilePhone" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="profileDob">Date of Birth</label>
+                                <input type="date" id="profileDob" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profileAddress">Residential Address</label>
+                            <input type="text" id="profileAddress" class="form-control" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Update Profile Details</button>
+                    </form>
+                </div>
+
+                <!-- Transaction PIN Security -->
+                <div class="glass-card" style="max-width: 700px; margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 0.75rem;">Transaction Security</h3>
+                    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+                        Create a 4-digit Transaction PIN to securely authorize deposits, withdrawals and fund transfers.
+                    </p>
+                    <button type="button" class="btn btn-primary" onclick="openTransactionPinModal()">Create Transaction PIN</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal: Create Account -->
+    <div class="modal" id="createAccountModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1rem;">Open a Bank Account</h3>
+            <form id="createAccountForm">
+                <div class="form-group">
+                    <label for="modalAccountType">Account Type</label>
+                    <select id="modalAccountType" class="form-control" required>
+                        <option value="SAVINGS">SAVINGS ACCOUNT</option>
+                        <option value="CHECKING">CHECKING ACCOUNT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modalAccountNumber">Account Number <span style="font-size:0.75rem; color:var(--color-text-secondary);">(Optional - 10 digits)</span></label>
+                    <input type="text" id="modalAccountNumber" class="form-control" placeholder="Enter 10-digit Account Number (or leave blank to auto-generate)" maxlength="10" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label for="modalInitialBalance">Initial Deposit ($)</label>
+                    <input type="number" id="modalInitialBalance" class="form-control" value="100.00" min="0.00" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="modalTransactionPin">Transaction PIN (4 digits)</label>
+                    <input type="password" id="modalTransactionPin" class="form-control" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+                    <small style="color:var(--color-text-secondary); font-size:0.75rem;">This 4-digit PIN will authorize your deposits, withdrawals, transfers, and loans.</small>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateAccountModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Create Transaction PIN -->
+    <div class="modal" id="pinModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 0.5rem;">Create Transaction PIN</h3>
+            <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+                Create a 4-digit PIN to securely authorize deposits, withdrawals, and fund transfers.
+            </p>
+            <form id="pinForm">
+                <div class="form-group">
+                    <label for="transactionPin">Transaction PIN</label>
+                    <input type="password" id="transactionPin" class="form-control" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmTransactionPin">Confirm Transaction PIN</label>
+                    <input type="password" id="confirmTransactionPin" class="form-control" placeholder="Re-enter 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closePinModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create PIN</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>

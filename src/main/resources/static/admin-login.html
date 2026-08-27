@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASHA BANK - Admin Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="glass-card auth-card" style="border-top: 4px solid var(--color-primary-orange);">
+            <div class="auth-header">
+                <div class="logo-section" style="justify-content: center; margin-bottom: 0.5rem;">
+                    <span class="logo-masha">MASHA</span><span class="logo-bank">BANK</span>
+                    <span style="font-size:0.75rem; background: var(--color-bg-light); color:var(--color-primary-orange); border: 1px solid var(--color-primary-orange); padding:2px 8px; border-radius:4px; margin-left:0.5rem; font-weight: 600;">ADMIN</span>
+                </div>
+                <h2>Admin Control Center</h2>
+                <p style="color: var(--color-text-secondary); font-size: 0.9rem;">System-wide operations and audit manager</p>
+            </div>
+
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="email">Administrator Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="admin@bank.com" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Security Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    Authorize & Sign In
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Are you a customer? <a href="login.html">Customer Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Redirect if already logged in
+        if (getAuthToken() && getAuthUser()) {
+            const user = getAuthUser();
+            window.location.href = user.role === 'ROLE_ADMIN' ? 'admin-dashboard.html' : 'dashboard.html';
+        }
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Verifying Admin Credentials...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.role !== 'ROLE_ADMIN') {
+                        showToast('Access Denied: Account does not possess administrative privileges.', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Authorize & Sign In';
+                        clearAuth();
+                        return;
+                    }
+                    setAuth(data.token, data.email, data.fullName, data.role);
+                    showToast('Admin Authorized. Launching console...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'admin-dashboard.html';
+                    }, 1000);
+                } else {
+                    showToast(data.message || 'Verification failed. Access Denied.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Authorize & Sign In';
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Unable to reach server. Please try again later.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Authorize & Sign In';
+            }
+        });
+    </script>
+</body>
+</html>

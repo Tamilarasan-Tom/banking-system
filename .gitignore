@@ -1,0 +1,37 @@
+# Git ignore file for Banking Management System
+
+# Compiled output
+target/
+*.class
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE files
+.idea/
+*.iml
+*.iws
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Environment / secrets - NEVER commit
+.env
+*.env.local
+*.env.production
+
+# Local Spring Boot configuration
+application-local.properties
+application-local.yml
+
+# Spring Boot specific
+HELP.md
+*.log
+logs/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
