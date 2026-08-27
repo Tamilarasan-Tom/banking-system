@@ -94,6 +94,18 @@ public class AuthController {
         return ResponseEntity.ok(user);
     }
 
+    @PutMapping("/make-admin")
+    public ResponseEntity<User> makeAdmin(@RequestParam String email) {
+
+        User user = userService.getUserByEmail(email);
+
+        user.setRole(Role.ROLE_ADMIN);
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(user);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser() {
 
