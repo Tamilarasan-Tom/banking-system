@@ -18,7 +18,31 @@ import java.time.LocalDate;
 public class BankingApplication {
 
     public static void main(String[] args) {
+        loadDotEnv();
         SpringApplication.run(BankingApplication.class, args);
+    }
+
+    private static void loadDotEnv() {
+        java.io.File envFile = new java.io.File(".env");
+        if (envFile.exists()) {
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(envFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.isEmpty() || line.startsWith("#")) continue;
+                    int eqIdx = line.indexOf('=');
+                    if (eqIdx > 0) {
+                        String key = line.substring(0, eqIdx).trim();
+                        String value = line.substring(eqIdx + 1).trim();
+                        if (System.getProperty(key) == null && System.getenv(key) == null) {
+                            System.setProperty(key, value);
+                        }
+                    }
+                }
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to load .env file: " + e.getMessage());
+            }
+        }
     }
 
     @Bean
@@ -28,36 +52,34 @@ public class BankingApplication {
             AccountService accountService,
             PasswordEncoder passwordEncoder) {
         return args -> {
-            // Seed Admin User if not exists
-            if (userRepository.findByEmail("admin@bank.com").isEmpty()) {
-                User admin = new User();
-                admin.setFullName("System Administrator");
-                admin.setEmail("admin@bank.com");
-                admin.setPhone("1234567890");
-                admin.setAddress("Bank HQ, New York");
-                admin.setDateOfBirth(LocalDate.of(1985, 1, 1));
-                admin.setPassword(passwordEncoder.encode("adminpassword"));
-                admin.setRole(Role.ROLE_ADMIN);
-                admin.setStatus(UserStatus.ACTIVE);
-                userRepository.save(admin);
-                System.out.println("Seeded admin user: admin@bank.com / adminpassword");
-            }
+            // Seed/Reset Admin User
+            User admin = userRepository.findByEmail("admin@bank.com").orElseGet(User::new);
+            admin.setFullName("System Administrator");
+            admin.setEmail("admin@bank.com");
+            if (admin.getPhone() == null) admin.setPhone("1234567890");
+            if (admin.getAddress() == null) admin.setAddress("Bank HQ, New York");
+            if (admin.getDateOfBirth() == null) admin.setDateOfBirth(LocalDate.of(1985, 1, 1));
+            admin.setPassword(passwordEncoder.encode("adminpassword"));
+            admin.setRole(Role.ROLE_ADMIN);
+            admin.setStatus(UserStatus.ACTIVE);
+            userRepository.save(admin);
+            System.out.println("Seeded/Updated admin user: admin@bank.com / adminpassword");
 
-            // Seed Test User if not exists
-            if (userRepository.findByEmail("user@bank.com").isEmpty()) {
-                User user = new User();
-                user.setFullName("John Doe");
-                user.setEmail("user@bank.com");
-                user.setPhone("9876543210");
-                user.setAddress("123 Elm Street, NY");
-                user.setDateOfBirth(LocalDate.of(1990, 5, 15));
-                user.setPassword(passwordEncoder.encode("userpassword"));
-                user.setRole(Role.ROLE_USER);
-                user.setStatus(UserStatus.ACTIVE);
-                User savedUser = userRepository.save(user);
-                System.out.println("Seeded customer user: user@bank.com / userpassword");
+            // Seed/Reset Test User
+            User user = userRepository.findByEmail("user@bank.com").orElseGet(User::new);
+            boolean isNewUser = (user.getId() == null);
+            user.setFullName("John Doe");
+            user.setEmail("user@bank.com");
+            if (user.getPhone() == null) user.setPhone("9876543210");
+            if (user.getAddress() == null) user.setAddress("123 Elm Street, NY");
+            if (user.getDateOfBirth() == null) user.setDateOfBirth(LocalDate.of(1990, 5, 15));
+            user.setPassword(passwordEncoder.encode("userpassword"));
+            user.setRole(Role.ROLE_USER);
+            user.setStatus(UserStatus.ACTIVE);
+            User savedUser = userRepository.save(user);
+            System.out.println("Seeded/Updated customer user: user@bank.com / userpassword");
 
-                // Seed a bank account for the customer
+            if (isNewUser) {
                 AccountRequest accountRequest = new AccountRequest();
                 accountRequest.setAccountType("SAVINGS");
                 accountRequest.setInitialBalance(new BigDecimal("1500.00"));
@@ -65,20 +87,21 @@ public class BankingApplication {
                 System.out.println("Seeded Savings Account for John Doe: " + account.getAccountNumber() + " with balance $1500.00");
             }
 
-            // Seed a second test user to facilitate transfer testing
-            if (userRepository.findByEmail("jane@bank.com").isEmpty()) {
-                User user2 = new User();
-                user2.setFullName("Jane Smith");
-                user2.setEmail("jane@bank.com");
-                user2.setPhone("9998887776");
-                user2.setAddress("456 Oak Ave, California");
-                user2.setDateOfBirth(LocalDate.of(1995, 8, 20));
-                user2.setPassword(passwordEncoder.encode("userpassword"));
-                user2.setRole(Role.ROLE_USER);
-                user2.setStatus(UserStatus.ACTIVE);
-                User savedUser2 = userRepository.save(user2);
-                System.out.println("Seeded customer user: jane@bank.com / userpassword");
+            // Seed/Reset second test user
+            User user2 = userRepository.findByEmail("jane@bank.com").orElseGet(User::new);
+            boolean isNewUser2 = (user2.getId() == null);
+            user2.setFullName("Jane Smith");
+            user2.setEmail("jane@bank.com");
+            if (user2.getPhone() == null) user2.setPhone("9998887776");
+            if (user2.getAddress() == null) user2.setAddress("456 Oak Ave, California");
+            if (user2.getDateOfBirth() == null) user2.setDateOfBirth(LocalDate.of(1995, 8, 20));
+            user2.setPassword(passwordEncoder.encode("userpassword"));
+            user2.setRole(Role.ROLE_USER);
+            user2.setStatus(UserStatus.ACTIVE);
+            User savedUser2 = userRepository.save(user2);
+            System.out.println("Seeded/Updated customer user: jane@bank.com / userpassword");
 
+            if (isNewUser2) {
                 AccountRequest accountRequest = new AccountRequest();
                 accountRequest.setAccountType("CHECKING");
                 accountRequest.setInitialBalance(new BigDecimal("500.00"));
